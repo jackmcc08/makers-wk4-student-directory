@@ -16,7 +16,7 @@ students_november_cohort = [
 ]
 
 # exercise 7 - set cohort entry to convert to a symbol and allows you to set a default cohort for all your entries.
-
+# exercise 10 - used rstrip instead of .chomps to remove \n from the gets input
 
 def input_students
   puts "Set cohort default for all? type Cohort name or press enter to not set default."
@@ -44,18 +44,23 @@ def input_students
 	  student[category] = input
       	end
       else
-	 input = gets.chomp
+	 input = gets.rstrip
          while input.empty?
 	   puts "Please enter input" 
-	   input = gets.chomp.to_sym
+	   input = gets.rstrip
          end
          student[category] = input
       end
     end 
+    puts student
     students << student
-    puts "Now we have #{students.count} students"
+    puts "Now we have #{students.count} #{students.count == 1 ? "student" : "students"}"
     puts "Enter another student? Type yes or no."
     decision = gets.chomp.downcase
+    while decision != 'yes' && decision != 'no'
+	puts 'Type yes or no'
+	decision = gets.chomp.downcase
+    end
     status = "stop" if decision == "no"
   end
   # return the array of students
@@ -75,7 +80,7 @@ end
 def print(names)
 # exercise 6 - added in center to print option 1 to align all fields into the center
 # exercise 8 - added in option to print by cohort, can print out each cohort in one go, or specific cohort.
-# exercise 9 - 
+# exercise 9 - fixed printing statments for singular/plural of student/students
 
   puts "Do you want: 
 The full list of names (enter 1) 
@@ -114,7 +119,7 @@ choice_possibilities = [1, 2, 3, 4]
         counter += 1
       end
     end
-    puts "We have #{counter} students with a name starting with #{letter.upcase}."
+    puts "We have #{counter} #{counter == 1 ? "student" : "students"} with a name starting with #{letter.upcase}."
 
   elsif choice == 3
     counter = 0
@@ -124,7 +129,7 @@ choice_possibilities = [1, 2, 3, 4]
         counter += 1
       end
     end
-    puts "We have #{counter} students with a name of less than 12 character."
+    puts "We have #{counter} #{counter == 1 ? "student" : "students"}} with a name of less than 12 character."
   
   elsif choice == 4
     puts "Do you want to print all cohorts or a specific cohort? Type all or specific"
@@ -160,7 +165,7 @@ choice_possibilities = [1, 2, 3, 4]
 end
 
 def print_footer(names)
-  puts "Overall, we have #{names.count} great students"
+  puts "Overall, we have #{names.count} great #{names.count == 1 ? "student" : "students"}"
 end
 
 # Method calls
