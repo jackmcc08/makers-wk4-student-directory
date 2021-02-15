@@ -16,19 +16,23 @@ students_november_cohort = [
 ]
 
 def input_students
-  puts "Please enter the names of the students"
-  puts "To finish, just hit return twice"
+  puts "Please enter the names of the students and their details"
+  puts "To finish, type no after entering final students hobby and press return."
   # empty array
   students = []
-  # get name
-  name = gets.chomp
-  # while name is not empty, repeat the input process
-  while !name.empty? do
-    #add the hash to array
-    students << {name: name, cohort: :november}
+  status = "start"  
+  while status == "start"
+    student = {}
+    categories = [name = :name, cohort = :cohort, age = :age, hobby = :hobby] 
+    categories.each do |category|
+      puts "Type #{category}"
+      student[category] = gets.chomp
+    end 
+    students << student
     puts "Now we have #{students.count} students"
-    # get another name from the user
-    name = gets.chomp
+    puts "Enter another student? Type yes or no."
+    decision = gets.chomp.downcase
+    status = "stop" if decision == "no"
   end
   # return the array of students
   students
@@ -43,6 +47,7 @@ end
 # exercise 2 - only print those students whose name begin with a specific letter
 # exercise 3 - only prints those students whose names begin with less than 12 characters
 # exercise 4 - rewrite the each method that prints all students using while or until control flow methods. 
+# exercise 5 - added in age and hobby fields, also included print out facility of all information
 def print(names)
 
   puts "Do you want: 
@@ -55,9 +60,12 @@ names with less than 12 characters (enter 3)"
   if choice == 1
     counter = 0
     while counter < names.length
-	puts "#{counter + 1}. #{names[counter][:name]} (#{names[counter][:cohort]} cohort)" 
+        print_array = ""
+	names[counter].map{ |y, z| print_array << "#{y}: #{z}, "} 
+	puts "#{counter + 1}. #{print_array.to_s}" 
 	counter += 1
     end
+
   elsif choice == 2
     puts "what letter would you like?"
     letter = gets.chomp.downcase
