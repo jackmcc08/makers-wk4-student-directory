@@ -1,3 +1,6 @@
+#Exercises 1 through 12 complete, exercise 11 is in a different file (spell_check.txt)
+
+
 # let's put all students into an array
 # commenting out existing students array to replace with user input array
 
@@ -17,6 +20,7 @@ students_november_cohort = [
 
 # exercise 7 - set cohort entry to convert to a symbol and allows you to set a default cohort for all your entries.
 # exercise 10 - used rstrip instead of .chomps to remove \n from the gets input
+# exercise 12 - program does not let you print an empty student directory as you cannot create one without making an entry.
 
 def input_students
   puts "Set cohort default for all? type Cohort name or press enter to not set default."
