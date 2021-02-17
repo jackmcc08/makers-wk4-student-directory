@@ -4,7 +4,7 @@
 # GLOBAL VARIABLES AND CONSTANTS
 
   $school_name = "Villain's Academy (est. 1805)"
-
+  $students = $students_november_cohort
   $students_november_cohort = [
     {name: "Dr. Hannibal Lecter", cohort: :november},
     {name: "Darth Vader", cohort: :november},
@@ -55,20 +55,20 @@ end
 # all other main methods are run from this method, so students variable which is used as input in each choice is set here
 # students is sets as the default november cohort generated in first exercise, if you choose to input the students it sets students as whatever you input. 
 def menu_process(selection)
-  students = $students_november_cohort
+
   case selection
     when 1
       puts "You selected Input the students"
-      students = input_students
+      $students = input_students
     when 2
       puts "You selected Display the student directory"
-      display_students(students)
+      display_students($students)
     when 3
       puts "You selected Save student directory to a csv file. Note a directory is autocreated to save the files in."
-      save_students(students)
+      save_students($students)
     when 4
       puts "You selected Load existing directory file"
-      students = load_students
+      $students = load_students
     when 9 
       puts "You selected Exit the program, the program will now Exit...Have a Great Day!"
       exit
@@ -460,13 +460,23 @@ def load_students
 
   file_name = directory_files[file_load]
   file = File.open("./saved_directories/#{file_name}", "r")
-  file.readlines.each do |line|
-    name, cohort = line.chomp.split(',')
-    students << {name: name, cohort: cohort.to_sym}
+  categories = []
+  file.readlines.each_with_index do |line, index|
+     if index == 0
+       categories = line.chomp.split(',')
+     else
+       students << categories.zip(line.chomp.split(',')).to_h
+     end
   end
+  puts students
   file.close
   puts "You have loaded the file #{file_name} into the students log, you can now display the file or save it under a new name."
+  students
 end
+
+# loading file is not working correctly....fix, does not carry through to print
+# need to sort categories into the categories and then read each line.
+
 
 # CALL METHODS and SCRIPT
 
