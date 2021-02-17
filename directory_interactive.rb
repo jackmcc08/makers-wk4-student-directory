@@ -30,6 +30,7 @@ def interactive_menu
   menu = {
     1 => "Input the students",
     2 => "Display the student directory",
+    3 => "Save the students list to a csv file",
     9 => "Exit the program" 
   }   
 
@@ -49,6 +50,9 @@ def interactive_menu
   end
 end
 
+# takes decision selected from interactive_menu and calls appropriate method
+# all other main methods are run from this method, so students variable which is used as input in each choice is set here
+# students is sets as the default november cohort generated in first exercise, if you choose to input the students it sets students as whatever you input. 
 def menu_process(selection)
   students = $students_november_cohort
   case selection
@@ -58,6 +62,9 @@ def menu_process(selection)
     when 2
       puts "You selected Display the student directory"
       display_students(students)
+    when 3
+      puts "You selected Save student directory to a csv file. Note a directory is autocreated to save the files in."
+      save_students(students)
     when 9 
       puts "You selected Exit the program, the program will now Exit...Have a Great Day!"
       exit
@@ -133,16 +140,20 @@ def input_students
   students
 end
 
+# common method for header across each display method
 def print_header
   puts "The students of #{$school_name}".center(100)
   puts "-------------------------------".center(100)
 end
+# common method for footer across each display method, requires same student input as the display method
 
 def print_footer(students)
   puts "-------------------------------".center(100)
   puts "Overall, we have #{students.count} great #{students.count == 1 ? "student" : "students"}".center(100)
 end
 
+# Standard print method for printing a student line - used for consisting formatting across the 4 display options
+# requires the method to be called with students.each_with_index to generate the student and counter inputs
 def print_student(student, counter)
   print_sentence = "#{counter}. "
   student.each do |category, value|
@@ -318,6 +329,94 @@ def display_students(students)
   interactive_menu
 
 end
+
+def save_students(students)
+  # create directory to save files
+  Dir.mkdir("./saved_directories") if !Dir.exist?("./saved_directories")
+  # open the file for writing
+ 
+  puts "What filename would you like to save this file under?
+Note all files are in csv format and saved in a new directory called saved_directories in your current directory"
+  file_name = gets.chomp
+  puts "are you sure you want to name your file: #{file_name}? Type yes to confirm or no to renter"
+  confirm_file_name = gets.chomp
+  while confirm_file_name != 'yes' && confirm_file_name != 'no'
+    puts "Please enter yes or no"
+    confirm_file_name = gets.chomp
+  end
+  while confirm_file_name == 'no'
+    puts "Please re-enter file name:"
+    file_name = gets.chomp
+    puts "are you sure you want to name your file: #{file_name}? Type yes to confirm or no to renter"
+    confirm_file_name = gets.chomp
+    while confirm_file_name != 'yes' && confirm_file_name != 'no'
+      puts "Please enter yes or no"
+      confirm_file_name = gets.chomp
+    end
+  end
+  
+  # checks if file already exists, if it does then asks if you want to overwrite or change the name.  
+  loop do 
+    if File.exist?("./saved_directories/#{file_name}.csv") 
+      puts "This file already exists, if you want to proceed this action will overwrite the existing file. Do you want to continue or change the file name? Selection option:
+      1. Continue and overwrite file
+      2. Change new file name"
+      choice = gets.chomp.to_i
+      while choice != 1 &&  choice != 2
+        puts "Please choose option 1(overwrite) or 2(change name)."
+        choice = gets.chomp.to_i
+      end
+      if choice == 1
+        break
+      elsif choice == 2
+        puts "Please enter the revised file_name, you previously entered #{file_name}."
+        file_name = gets.chomp
+        puts "are you sure you want to name your file: #{file_name}? Type yes to confirm or no to renter"
+        confirm_file_name = gets.chomp
+        while confirm_file_name != 'yes' && confirm_file_name != 'no'
+          puts "Please enter yes or no"
+          confirm_file_name = gets.chomp
+        end
+        while confirm_file_name == 'no'
+          puts "Please re-enter file name:"
+          file_name = gets.chomp
+          puts "are you sure you want to name your file: #{file_name}? Type yes to confirm or no to renter"
+          confirm_file_name = gets.chomp
+          while confirm_file_name != 'yes' && confirm_file_name != 'no'
+            puts "Please enter yes or no"
+            confirm_file_name = gets.chomp
+          end
+        end
+        if !File.exist?("./saved_directories/#{file_name}.csv")
+          break
+        end
+      end
+    else
+      break
+    end
+  end
+        
+  puts "File saving in progress..."
+
+  file = File.open("./saved_directories/#{file_name}.csv", "w+")
+
+  # adds category names in first line
+  category_data = []
+  students[0].each_key { |key| category_data << key }
+  file.puts category_data.join(",")
+
+  # iterate over the array of students
+  students.each do |student|
+    student_data = []
+    student.each_value { |value| student_data << value }
+    csv_line = student_data.join(",")
+    file.puts csv_line
+  end
+  file.close
+  
+  puts "File Saved"
+  
+end 
 
 # CALL METHODS and SCRIPT
 
