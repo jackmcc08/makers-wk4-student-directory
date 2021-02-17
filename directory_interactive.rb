@@ -31,6 +31,7 @@ def interactive_menu
     1 => "Input the students",
     2 => "Display the student directory",
     3 => "Save the students list to a csv file",
+    4 => "Load an existing directory",
     9 => "Exit the program" 
   }   
 
@@ -65,6 +66,9 @@ def menu_process(selection)
     when 3
       puts "You selected Save student directory to a csv file. Note a directory is autocreated to save the files in."
       save_students(students)
+    when 4
+      puts "You selected Load existing directory file"
+      students = load_students
     when 9 
       puts "You selected Exit the program, the program will now Exit...Have a Great Day!"
       exit
@@ -417,6 +421,52 @@ Note all files are in csv format and saved in a new directory called saved_direc
   puts "File Saved"
   
 end 
+
+def load_students
+  students = []
+  directory = []
+  directory_files = {}
+
+  if !Dir.exist?("saved_directories")
+    puts "You do not have a saved directories folder, please save a directory first.
+    You will now return to main menu"
+    return
+  end
+  
+  if Dir.empty?("saved_directories")
+    puts "You do not have any saved directories. Please save a directory first.
+    You will now return to main menu."
+    return
+  else   
+    puts "You have the following saved directories:"
+    directory = Dir.entries("saved_directories")
+    counter = 1
+    directory.each do |file|
+      if file[0] == "." #don't print hidden files in the directory
+      else
+       directory_files[counter] = "#{file}"
+       counter += 1
+      end
+    end
+    directory_files.each { |key, value| puts "#{key}. #{value}"}
+  end
+
+  puts "What file would you like to load? Please enter the relevant number"
+  file_load = gets.chomp.to_i
+  while file_load < 1 || file_load > directory_files.length do
+    puts "Please choose an available file number"
+    file_load = gets.chomp.to_i
+  end
+
+  file_name = directory_files[file_load]
+  file = File.open("./saved_directories/#{file_name}", "r")
+  file.readlines.each do |line|
+    name, cohort = line.chomp.split(',')
+    students << {name: name, cohort: cohort.to_sym}
+  end
+  file.close
+  puts "You have loaded the file #{file_name} into the students log, you can now display the file or save it under a new name."
+end
 
 # CALL METHODS and SCRIPT
 
