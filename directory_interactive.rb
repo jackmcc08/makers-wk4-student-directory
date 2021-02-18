@@ -1,10 +1,22 @@
 # This file contains the revised student directory code incorporating the refactored directory_alt_exercises.rb and steps 9 through 14.
 # Step 9 - Added an interactive menu
+# Step 10 - refactoring done
+# Step 11 and 12 - saving and loading data functions implemented
+# Step 13 - Done, created an autoloader, which takes its argument from the command line. Also autoloads a default file 
+# Step 14 - as per below
+# Exercise 1 - Complete - Input students and load students are different functions, does not violate DRY
+# Exercise 2 - Complete - program autoloads .default_november.cohort.csv if no file name is provided. default file is stored with program files. Saved files will be saved in a seperate folder.
+# Exercise 3 - Continuous - Refactoring will be ongoing 
+# Exercise 4 - Complete - majority of actions have success messages, also have built program such that invalid input is not accepted, and made it hard to crash the program.
+# Exercise 5 - Done - Filename save and load is flexible, user can choose where you save and choose which file to load
+# Exercise 6
+# Exercise 7 
+# Exercise 8 
 
 # GLOBAL VARIABLES AND CONSTANTS
 
   $school_name = "Villain's Academy (est. 1805)"
-  $students = $students_november_cohort
+
   $students_november_cohort = [
     {name: "Dr. Hannibal Lecter", cohort: :november},
     {name: "Darth Vader", cohort: :november},
@@ -18,7 +30,16 @@
     {name: "Joffrey Baratheon", cohort: :november},
     {name: "Norman Bates", cohort:  :november}
   ]
+ 
+ $students = "" #either autoloads default_november_cohort or another saved file if specified. If no specification in ARGV - default november_cohort is loaded. 
 
+ 
+ $instructions = "INSTRUCTIONS
+To create a student directory select option 1. You can then display or save that directory with options 2 & 3 respectively.
+If you save the directory you can load it in the future with option 4.
+Note a student directory has been auto-loaded if you wish to use display or save instantly."
+
+  
 # METHODS
 
 def interactive_menu
@@ -26,24 +47,42 @@ def interactive_menu
 # 2. Read the input and save it into a variable
 # 3. Do what the user has asked
 # 4. repeat from step 1
+  
+  puts 
+  puts "Welcome to #{$school_name}".center(100)
+  puts "-------------------------".center(100)
+  puts
+
+if !ARGV.empty?
+  argv = []
+  ARGV.each { |x| argv << x} 
+  ARGV.clear
+  $students = auto_loader(argv[0])
+else
+  $students = auto_loader()
+
+end
 
   menu = {
-    1 => "Input the students",
+    1 => "Input a new student directory",
     2 => "Display the student directory",
     3 => "Save the students list to a csv file",
     4 => "Load an existing directory",
+    5 => "Delete an existing directory", 
     9 => "Exit the program" 
   }   
-
-  puts "Welcome to #{$school_name}".center(100)
+  puts
   puts "-------------------------".center(100)
- 
+  
   loop do
     puts "Please select your action (type number of choice):".center(100)
+    puts
     menu.each { |key, option| puts "#{key}. #{option}".center(100) }
-    puts "-------------------------".center(100)
+    puts "-------------------------".center(100)  
+  
+    puts $instructions.center(100)
     
-    choice = gets.chomp.to_i
+    choice = STDIN.gets.chomp.to_i
     if menu.has_key?(choice)
   	menu_process(choice)
     end
@@ -54,23 +93,27 @@ end
 # takes decision selected from interactive_menu and calls appropriate method
 # all other main methods are run from this method, so students variable which is used as input in each choice is set here
 # students is sets as the default november cohort generated in first exercise, if you choose to input the students it sets students as whatever you input. 
+
 def menu_process(selection)
 
   case selection
     when 1
-      puts "You selected Input the students"
+      puts "You selected to input a new student directory."
       $students = input_students
     when 2
-      puts "You selected Display the student directory"
+      puts "You selected display the currently loaded student directory"
       display_students($students)
     when 3
-      puts "You selected Save student directory to a csv file. Note a directory is autocreated to save the files in."
+      puts "You selected to save the current student directory to a csv file. Note a directory is autocreated to save the files in."
       save_students($students)
     when 4
-      puts "You selected Load existing directory file"
+      puts "You selected load an existing directory file"
       $students = load_students
+    when 5
+      puts "You selected to delete an existing directory file"
+      delete_students
     when 9 
-      puts "You selected Exit the program, the program will now Exit...Have a Great Day!"
+      puts "You selected exit the program, the program will now Exit...Have a Great Day!"
       exit
     else
       puts "Menu choice not valid, please try again" 
@@ -78,8 +121,10 @@ def menu_process(selection)
   interactive_menu
 end
 
+# INPUT STUDENTS CODE
 def input_students
   # option to set default cohort for all entered students
+  puts
   puts "Would you like to set a default cohort for all entries? Type yes to set default, type no to skip."
   cohort_default_choice = gets.chomp
   while cohort_default_choice != 'yes' && cohort_default_choice != 'no'
@@ -93,6 +138,7 @@ def input_students
   end
 
   # start of entering students (note: future improvement, allow user to set what categories to set)
+  puts
   puts "Please enter the names of the students and their details."
   puts "To finish, type no after entering final students hobby and press return."
   students = []
@@ -122,7 +168,7 @@ def input_students
     # Future improvement - opportunity to allow editing here
     
     students << student 
-    puts "You have entered #{students.count} #{students.count == 1 ? "student" : "students"}"
+    puts "You have entered #{students.count} #{students.count == 1 ? "student" : "students"} into the directory."
     puts "Enter another student? Type yes or no."
     decision = gets.chomp.downcase
     while decision != 'yes' && decision != 'no'
@@ -139,18 +185,24 @@ def input_students
     choice = gets.chomp
   end
   display_students(students) if choice == 'yes' 
-
+  
+  puts "Remeber to save your student file with option 3 on the main menu to store it for later use. If you do not save it, it will disapear at the end of the session".center(100)
+  puts "Press enter to continue".center(100)
+  gets.chomp
+  
   # array of students returned
   students
 end
 
+# DISPLAY METHODS
 # common method for header across each display method
 def print_header
+  puts
   puts "The students of #{$school_name}".center(100)
   puts "-------------------------------".center(100)
 end
-# common method for footer across each display method, requires same student input as the display method
 
+# common method for footer across each display method, requires same student input as the display method
 def print_footer(students)
   puts "-------------------------------".center(100)
   puts "Overall, we have #{students.count} great #{students.count == 1 ? "student" : "students"}".center(100)
@@ -334,13 +386,14 @@ def display_students(students)
 
 end
 
+# SAVE METHODS
 def save_students(students)
   # create directory to save files
   Dir.mkdir("./saved_directories") if !Dir.exist?("./saved_directories")
   # open the file for writing
  
   puts "What filename would you like to save this file under?
-Note all files are in csv format and saved in a new directory called saved_directories in your current directory"
+  Note all files are in csv format and saved in a new directory called saved_directories in your current directory"
   file_name = gets.chomp
   puts "are you sure you want to name your file: #{file_name}? Type yes to confirm or no to renter"
   confirm_file_name = gets.chomp
@@ -420,35 +473,60 @@ Note all files are in csv format and saved in a new directory called saved_direc
   
   puts "File Saved"
   
-end 
+end
+ 
+# LOADING METHODS
 
-def load_students
+def auto_loader(file_name = ".default_november_cohort.csv")
   students = []
-  directory = []
+  if !Dir.exist?("saved_directories")
+    puts "There is no directories folder available, please save a file first to enable autoloading from command line".center(100)
+    return if file_name != ".default_november_cohort.csv"
+  elsif !File.exist?("./saved_directories/#{file_name}") 
+    puts "#{file_name} does not exist. A default file will be autoloaded instead.".center(100)
+    puts "To load your file in the future please ensure it is saved in the saved_directories folder".center(100)
+    file_name = ".default_november_cohort.csv"
+  end 
+ 
+  if file_name == ".default_november_cohort.csv"
+    if !File.exist?("./#{file_name}") 
+      puts "The default autoload file does not exist, please ignore this error message.".center(100)
+      return
+    else
+      file = File.open("./#{file_name}","r")
+    end
+  else
+    file = File.open("./saved_directories/#{file_name}", "r")
+  end
+
+  categories = []
+  file.readlines.each_with_index do |line, index|
+     if index == 0
+       categories = line.chomp.split(',')
+     else
+       students << categories.zip(line.chomp.split(',')).to_h
+     end
+  end
+  file.close
+  if file_name == ".default_november_cohort.csv"
+    puts "A default file #{file_name} has been autoloaded.".center(100)
+  else
+    puts "The file #{file_name} has been autoloaded, you can now display the file or save it under a new name.".center(100)
+  end
+  students 
+end
+
+   
+def load_students
+  students = [] 
   directory_files = {}
 
-  if !Dir.exist?("saved_directories")
-    puts "You do not have a saved directories folder, please save a directory first.
-    You will now return to main menu"
-    return
-  end
+  return if check_saved_directories_folder == "no_directory_folder"
   
-  if Dir.empty?("saved_directories")
-    puts "You do not have any saved directories. Please save a directory first.
-    You will now return to main menu."
-    return
+  if check_for_any_saved_files == "no_files"  
+    return #move back to main menu
   else   
-    puts "You have the following saved directories:"
-    directory = Dir.entries("saved_directories")
-    counter = 1
-    directory.each do |file|
-      if file[0] == "." #don't print hidden files in the directory
-      else
-       directory_files[counter] = "#{file}"
-       counter += 1
-      end
-    end
-    directory_files.each { |key, value| puts "#{key}. #{value}"}
+    directory_files = list_directories
   end
 
   puts "What file would you like to load? Please enter the relevant number"
@@ -468,14 +546,93 @@ def load_students
        students << categories.zip(line.chomp.split(',')).to_h
      end
   end
-  puts students
   file.close
   puts "You have loaded the file #{file_name} into the students log, you can now display the file or save it under a new name."
+  puts "Press enter to return to the main menu"
+  gets.chomp
   students
 end
 
-# loading file is not working correctly....fix, does not carry through to print
-# need to sort categories into the categories and then read each line.
+def check_saved_directories_folder
+  if !Dir.exist?("saved_directories")
+    puts "You do not have a saved directories folder, please save a directory first.
+    press enter to return to main menu"
+    gets.chomp
+    return "no_directory_folder"
+  else
+    return true
+  end
+end
+
+def check_for_any_saved_files
+  if Dir.empty?("saved_directories")
+    puts "You do not have any saved directories. Please save a directory first."
+    puts "Press enter to return to the main menu"
+    gets.chomp
+    return "no_files"
+  else
+    return true
+  end
+end
+
+def list_directories
+  directory = []
+  directory_files = {}
+
+  puts "You have the following saved directories:"
+  directory = Dir.entries("saved_directories")
+  counter = 1
+  directory.each do |file|
+    if file[0] == "." #don't print hidden files in the directory
+    else
+     directory_files[counter] = "#{file}"
+     counter += 1
+    end
+  end
+  directory_files.each { |key, value| puts "#{key}. #{value}"}
+  directory_files
+end
+
+# DELETE METHODS
+
+def delete_students
+  directory_files = {}
+
+  return if check_saved_directories_folder == "no_directory_folder" 
+  
+  if check_for_any_saved_files == "no_files"
+    return #move back to main menu
+  else   
+    directory_files = list_directories
+  end
+
+  puts "What file would you like to delete? Please enter the relevant number, or enter exit to return to main menu"
+  file_load = gets.chomp
+  while file_load != "exit" && (file_load.to_i < 1 || file_load.to_i > directory_files.length) do 
+    puts "Please choose an available file number or 'exit' to return to main menu"
+    file_load = gets.chomp
+  end
+
+  return if file_load == 'exit'
+
+  file_name = directory_files[file_load.to_i]
+ 
+  puts "Are you sure you want to delete #{file_name}? Type yes to delete, no to return to main menu."
+  delete_choice = gets.chomp
+  while delete_choice != 'yes' && delete_choice != 'no'
+    puts "Please enter 'yes' (delete) or 'no'"
+    delete_choice = gets.chomp
+  end
+
+  return if delete_choice == 'no' # main menu
+
+  File.delete("./saved_directories/#{file_name}")
+
+  puts "You have now deleted #{file_name}. Press enter to return to main menu."
+  gets.chomp
+
+end
+
 
 
 # CALL METHODS and SCRIPT
