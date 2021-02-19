@@ -1,4 +1,4 @@
-# This file contains the revised student directory code incorporating the refactored directory_alt_exercises.rb and steps 9 through 14.
+# This file contains the revised student directory code incorporating the refactored directory_alt_exercises.rb where steps 1 through 8 were completed. This file has the following steps included.
 # Step 9 - Added an interactive menu
 # Step 10 - refactoring done
 # Step 11 and 12 - saving and loading data functions implemented
@@ -6,14 +6,19 @@
 # Step 14 - as per below
 # Exercise 1 - Complete - Input students and load students are different functions, does not violate DRY
 # Exercise 2 - Complete - program autoloads .default_november.cohort.csv if no file name is provided. default file is stored with program files. Saved files will be saved in a seperate folder.
-# Exercise 3 - Continuous - Refactoring will be ongoing 
+# Exercise 3 - Complete - Refactored to a good degree, will have a look again and going to try to refactor into classes to make code a bit more readable.
 # Exercise 4 - Complete - majority of actions have success messages, also have built program such that invalid input is not accepted, and made it hard to crash the program.
-# Exercise 5 - Done - Filename save and load is flexible, user can choose where you save and choose which file to load
-# Exercise 6
-# Exercise 7 
-# Exercise 8 
+# Exercise 5 - Complete - Filename save and load is flexible, user can choose where you save and choose which file to load
+# Exercise 6 - Complete - with the File Loader (not autoloader) it is refactored to auto close the file, done through passing a block to the File.open command.
+# Exercise 7 - Complete - Refactored load and save methods to work with CSV class instead of File class - makes for a slightly simpler code
+# Exercise 8 - Complete - Created a Quine which relies on being able to open the file and read through it, which I do not believe is a proper quine, have not figured out how to read each line of code in ruby from the top to the bottom and store it in a string while also making all the code executable.
+# README - to write
 
-# GLOBAL VARIABLES AND CONSTANTS
+# GLOBAL VARIABLES, CONSTANTS, REQUIREMENTS
+
+  require "csv"
+
+  $first_run = true
 
   $school_name = "Villain's Academy (est. 1805)"
 
@@ -31,6 +36,8 @@
     {name: "Norman Bates", cohort:  :november}
   ]
  
+ $current_file_loaded = ""
+
  $students = "" #either autoloads default_november_cohort or another saved file if specified. If no specification in ARGV - default november_cohort is loaded. 
 
  
@@ -53,15 +60,15 @@ def interactive_menu
   puts "-------------------------".center(100)
   puts
 
-if !ARGV.empty?
-  argv = []
-  ARGV.each { |x| argv << x} 
-  ARGV.clear
-  $students = auto_loader(argv[0])
-else
-  $students = auto_loader()
-
-end
+  if $first_run == true
+    $students = auto_loader(ARGV)
+  else
+    if $current_file_loaded == "user inputted directory"
+      puts "A #{$current_file_loaded} is currently loaded. Please save it to store permanently.".center(100)
+    else
+      puts "The file #{$current_file_loaded} is currently loaded.".center(100)
+    end
+  end
 
   menu = {
     1 => "Input a new student directory",
@@ -69,6 +76,7 @@ end
     3 => "Save the students list to a csv file",
     4 => "Load an existing directory",
     5 => "Delete an existing directory", 
+    8 => "Quine this program (print out it's source code)",
     9 => "Exit the program" 
   }   
   puts
@@ -112,6 +120,9 @@ def menu_process(selection)
     when 5
       puts "You selected to delete an existing directory file"
       delete_students
+    when 8
+      puts "You have selected to Quine this program"
+      quine
     when 9 
       puts "You selected exit the program, the program will now Exit...Have a Great Day!"
       exit
@@ -191,6 +202,7 @@ def input_students
   gets.chomp
   
   # array of students returned
+  $current_file_loaded = "user inputted directory"
   students
 end
 
@@ -242,7 +254,7 @@ def display_by_cohort(students)
   
   cohorts = Array.new
   students.each { |student| cohorts << student[:cohort] }
-  cohorts.uniq!
+  cohorts.uniq!  # display alphabetically? .sort
   
   if all_spec_choice == 1 #all
     print_header
@@ -298,7 +310,7 @@ def display_by_chosen_letter(students)
       counter += 1
     end
   end
-  puts "There #{counter == 1 ? "is" : "are" } #{counter} #{counter == 1 ? "student" : "students"} with a name beginning with #$students_november_cohort.".center(100)
+  puts "There #{counter == 1 ? "is" : "are" } #{counter} #{counter == 1 ? "student" : "students"} with a name beginning with #{letter}.".center(100)
   print_footer(students)
 end
 
@@ -310,15 +322,16 @@ def display_by_chosen_length(students)
     less_than = gets.chomp.to_i
   end
   puts "You are printing all students with a name of less than #{less_than} characters.".center(100)
+ 
   print_header
   counter = 0
   students.each_with_index do |student, index|
-    if student[:name].length == less_than
+    if student[:name].length < less_than
       print_student(student, index + 1)
       counter += 1
     end
   end
-  puts "There #{counter == 1 ? "is" : "are" } #{counter} #{counter == 1 ? "student" : "students"} with a name of less than #{less_than} characters."
+  puts "There #{counter == 1 ? "is" : "are" } #{counter} #{counter == 1 ? "student" : "students"} with a name of less than #{less_than} characters.".center(100)
   print_footer(students)
 end
 
@@ -455,34 +468,46 @@ def save_students(students)
         
   puts "File saving in progress..."
 
-  file = File.open("./saved_directories/#{file_name}.csv", "w+")
+  save_csv(students, file_name)
 
-  # adds category names in first line
-  category_data = []
-  students[0].each_key { |key| category_data << key }
-  file.puts category_data.join(",")
-
-  # iterate over the array of students
-  students.each do |student|
-    student_data = []
-    student.each_value { |value| student_data << value }
-    csv_line = student_data.join(",")
-    file.puts csv_line
-  end
-  file.close
-  
   puts "File Saved"
-  
+  $current_file_loaded = "#{file_name}.csv"
+  puts "Press enter to return to main menu."
+  gets
+  students  
 end
- 
+
+def save_csv(students, file_name)
+
+  CSV.open("./saved_directories/#{file_name}.csv", "w+") do |csv|
+    category_data = []
+    students[0].each_key { |key| category_data << key }
+    csv << category_data
+    students.each do |student|
+      student_data = []
+      student.each_value { |value| student_data << value}
+      csv << student_data
+    end
+  end  
+end
+
 # LOADING METHODS
 
-def auto_loader(file_name = ".default_november_cohort.csv")
+def auto_loader(inputs)
+  # clears ARGV to reset gets to STDIN sf used
+  if !ARGV.empty?
+   file_name = ARGV[0] 
+   ARGV.clear
+  else
+   file_name = ".default_november_cohort.csv" 
+  end
+  $first_run = false
+   
   students = []
   if !Dir.exist?("saved_directories")
     puts "There is no directories folder available, please save a file first to enable autoloading from command line".center(100)
     return if file_name != ".default_november_cohort.csv"
-  elsif !File.exist?("./saved_directories/#{file_name}") 
+  elsif file_name != ".default_november_cohort.csv" && !File.exist?("./saved_directories/#{file_name}") 
     puts "#{file_name} does not exist. A default file will be autoloaded instead.".center(100)
     puts "To load your file in the future please ensure it is saved in the saved_directories folder".center(100)
     file_name = ".default_november_cohort.csv"
@@ -493,32 +518,23 @@ def auto_loader(file_name = ".default_november_cohort.csv")
       puts "The default autoload file does not exist, please ignore this error message.".center(100)
       return
     else
-      file = File.open("./#{file_name}","r")
+      students = load_csv("./#{file_name}")
     end
   else
-    file = File.open("./saved_directories/#{file_name}", "r")
+    students = load_csv("./saved_directories/#{file_name}")
   end
-
-  categories = []
-  file.readlines.each_with_index do |line, index|
-     if index == 0
-       categories = line.chomp.split(',')
-     else
-       students << categories.zip(line.chomp.split(',')).to_h
-     end
-  end
-  file.close
+ 
   if file_name == ".default_november_cohort.csv"
     puts "A default file #{file_name} has been autoloaded.".center(100)
   else
     puts "The file #{file_name} has been autoloaded, you can now display the file or save it under a new name.".center(100)
   end
+  $current_file_loaded = file_name
   students 
 end
 
    
-def load_students
-  students = [] 
+def load_students 
   directory_files = {}
 
   return if check_saved_directories_folder == "no_directory_folder"
@@ -537,19 +553,12 @@ def load_students
   end
 
   file_name = directory_files[file_load]
-  file = File.open("./saved_directories/#{file_name}", "r")
-  categories = []
-  file.readlines.each_with_index do |line, index|
-     if index == 0
-       categories = line.chomp.split(',')
-     else
-       students << categories.zip(line.chomp.split(',')).to_h
-     end
-  end
-  file.close
+  students = load_csv("./saved_directories/#{file_name}")
+
   puts "You have loaded the file #{file_name} into the students log, you can now display the file or save it under a new name."
   puts "Press enter to return to the main menu"
   gets.chomp
+  $current_file_loaded = file_name
   students
 end
 
@@ -593,6 +602,18 @@ def list_directories
   directory_files
 end
 
+def load_csv(file_path) #file path must be a string"
+  students = []
+  csv_array = CSV.read(file_path)
+  categories = csv_array[0]
+  categories.map! { |category| category.to_sym }
+  csv_array[1..-1].each do |line|
+    students << categories.zip(line).to_h
+  end
+  students
+end
+
+
 # DELETE METHODS
 
 def delete_students
@@ -633,7 +654,14 @@ def delete_students
 
 end
 
-
+#QUINE
+def quine
+  File.open(__FILE__,"r").readlines.each { |line| print "#{line}" }
+  puts
+  puts "--END OF QUINE--".center(100)
+  puts "Press enter to return to the main menu".center(100)
+  gets.chomp
+end
 
 # CALL METHODS and SCRIPT
 
