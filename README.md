@@ -12,3 +12,7 @@ A default csv file with information is downloaded as part of the clone - .defaul
 Older iterations of the program are (not required - can be deleted):
 - directory.rb
 - directory\_alt\_exercises.rb
+- spell\_check.rb (was created as part of an exercise)
+
+There is also a file quine.rb which includes two solutions for quines, 1 which is a method to print out the full source code of any program it is run in, the other is a true quine.
+
