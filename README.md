@@ -1,7 +1,7 @@
 # STUDENT DIRECTORY PROGRAM
 Week 4 of Makers pre-course
 
-Please feel free to clone the repo to run the program and see it for yourself. Please feel free to raise any issues with broken code or any improvement comments you have.
+Please feel free to clone the repo to run the program and see it for yourself. Please raise an issue with any broken code or any improvement comments you have.
 
 Upon cloning the repo, run the program in your command line with % ruby directory\_interactive.rb
 
@@ -14,5 +14,5 @@ Older iterations of the program are (not required - can be deleted):
 - directory\_alt\_exercises.rb
 - spell\_check.rb (was created as part of an exercise)
 
-There is also two files quine.rb and quine\_final.rb which includes three solutions for quines, 2 which are a method to print out the full source code of any program it is run in, the other is a true quine.
+There are also two files quine.rb and quine\_final.rb which includes three solutions for quines, 2 of which are a method to print out the full source code of any program it is run in, the other is a true quine.
 
