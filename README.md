@@ -9,6 +9,8 @@ If you choose to save a file it will automatically create a directory in your fo
 
 A default csv file with information is downloaded as part of the clone - .default\_november\_cohort.csv - you can delete this if you want.
 
+---------
+
 Older iterations of the program are (not required - can be deleted):
 - directory.rb
 - directory\_alt\_exercises.rb
